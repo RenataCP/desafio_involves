@@ -1,0 +1,13 @@
+repositories:
+  - name: apache-airflow
+    url: https://airflow.apache.org
+
+releases:
+  - name: airflow
+    namespace: airflow
+    createNamespace: true
+    chart: apache-airflow/airflow
+    version: "1.16.0"
+    values:
+      - values.yaml
+      - values-secrets.yaml

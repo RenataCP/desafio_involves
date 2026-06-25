@@ -1,0 +1,11 @@
+fullnameOverride: airflow-postgres
+
+auth:
+  database: airflow
+
+primary:
+  service:
+    type: ClusterIP
+  persistence:
+    enabled: true
+    size: 5Gi

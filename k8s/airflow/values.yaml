@@ -1,0 +1,48 @@
+defaultAirflowRepository: apache/airflow
+defaultAirflowTag: "2.10.5"
+
+executor: KubernetesExecutor
+
+postgresql:
+  enabled: false
+
+statsd:
+  enabled: false
+
+flower:
+  enabled: false
+
+redis:
+  enabled: false
+
+data:
+  metadataConnection:
+    user: airflow
+    protocol: postgresql
+    host: postgres.airflow.svc.cluster.local
+    port: 5432
+    db: airflow
+    sslmode: disable
+
+dags:
+  gitSync:
+    enabled: true
+    repo: git@github.com:RenataCP/dataops_involves
+    branch: main
+    subPath: dags
+    wait: 60
+
+webserver:
+  service:
+    type: NodePort
+    ports:
+      - name: airflow-ui
+        port: 8080
+        targetPort: 8080
+        nodePort: 30090
+
+logs:
+  persistence:
+    enabled: true
+    size: 5Gi
+    existingClaim: airflow-logs
