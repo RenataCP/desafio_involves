@@ -1,0 +1,65 @@
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'k8s/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    
+
+    steps:
+      # --- Get history
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # --- Installs k8 dependencies
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Add Helm repositories
+        run: |
+          helm repo add apache-airflow https://airflow.apache.org
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm repo update
+
+      # --- Yaml sintaxe validation
+      - name: YAML lint
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          file_or_dir: k8s/
+          config_data: |
+            extends: default
+            rules:
+              line-length:
+                max: 120
+              document-start: disable
+              new-line-at-end-of-file: disable
+
+      # --- Validate chart schema
+      - name: Helm lint — Airflow
+        run: |
+          helm template airflow apache-airflow/airflow \
+            --version 1.16.0 \
+            --values k8s/airflow/values.yaml \
+            --values k8s/airflow/values-secrets.yaml.example > /dev/null
+
+      - name: Helm lint — Postgres
+        run: |
+          helm template airflow-postgres bitnami/postgresql \
+            --version 18.7.8 \
+            --values k8s/postgres/values.yaml \
+            --values k8s/postgres/values-secrets.yaml.example > /dev/null
+
+      # --- Check for sensitive data
+      - name: Secret scanning
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
