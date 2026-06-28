@@ -27,7 +27,6 @@ def _get_connection():
 def create_tables(**context: Any) -> None:
     try:
         conn = _get_connection()
-        logger.info(f"conn1 create: {conn}")
 
         conn.run("CREATE SCHEMA IF NOT EXISTS raw;")
                             
@@ -61,6 +60,15 @@ def create_tables(**context: Any) -> None:
         logger.info(f"Fail to create Schema or Table: {e}")
         raise
 
+def set_app_permissions():
+    try:
+        conn = _get_connection()
+
+        conn.run("GRANT USAGE ON SCHEMA curated TO pokedex_api")
+        conn.run("GRANT SELECT ON curated.pokemon TO pokedex_api")
+        
+    except Exception as e:
+        logger.error(e)
 
 # # #
 # Extraction Task
@@ -86,7 +94,6 @@ def extract(**context: Any) -> dict[str, int]:
     failed = 0
 
     conn = _get_connection()
-    logger.info(f"conn2 create: {conn}")
 
     for pokemon_id in range(1, pokemon_count+1):
         url = f"{POKEAPI_BASE_URL}/pokemon/{pokemon_id}"
@@ -181,6 +188,11 @@ with DAG(
         python_callable=create_tables
     )
 
+    permissions = PythonOperator(
+        task_id="set_permissions",
+        python_callable=set_app_permissions
+    )
+
     extraction = PythonOperator(
         task_id="extraction",
         python_callable=extract
@@ -191,4 +203,4 @@ with DAG(
         python_callable=transform_and_load
     )
 
-    setup >> extraction >> transform
+    setup >> permissions >> extraction >> transform
