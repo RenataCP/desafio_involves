@@ -6,7 +6,8 @@ image: rancher/k3s:v1.31.6-k3s1
 servers: 1
 agents: 0
 ports:
-  - port: 39090:30090
+  - port: 39090:30090 # Airflow
+  - port: 39091:30091 # Pokedex-API
     nodeFilters:
       - loadbalancer
 options:

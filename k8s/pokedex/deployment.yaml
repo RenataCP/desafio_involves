@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokedex-api
+  namespace: pokedex
+
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pokedex-api
+  template:
+    metadata:
+      labels:
+        app: pokedex-api
+    spec:
+      imagePullSecrets:
+        - name: ghcr-secret
+      containers:
+        - name: pokedex-api
+          image: ghcr.io/renatacp/pokedex-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: db-secret
