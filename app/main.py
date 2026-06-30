@@ -38,7 +38,13 @@ def get_connection():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}
+    try:
+        conn = get_connection()
+        conn.close()
+        return {"status": "ok"}
+    except Exception as e:
+        logger.error("Health check failed", extra={"error": str(e)})
+        raise HTTPException(status_code=503, detail="database unavailable")
 
 @app.get("/pokemon")
 def list_pokemon():
