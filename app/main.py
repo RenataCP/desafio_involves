@@ -1,11 +1,25 @@
 import os
+import json
 import logging
 import psycopg2
 import psycopg2.extras
 
 from fastapi import FastAPI, HTTPException
 
+class JsonFormarter(logging.Formatter):
+    def format(self, record):
+        return json.dumps({
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "service": "pokedex_api",
+            "message": record.getMessage(),
+        })
+
+handler = logging.StreamHandler()
+handler.setFormatter(JsonFormarter())
 logger = logging.getLogger("pokedex_api")
+logging.getLogger().addHandler(handler)
+logging.getLogger().setLevel(logging.INFO)
 
 app = FastAPI(
     title="Pokedex API",
