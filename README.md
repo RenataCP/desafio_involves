@@ -109,6 +109,18 @@ kubectl apply -f k8s/pokedex/service.yaml
 |Airflow UI | http://localhost:39090 |
 |Pokedex API (Swagger) | http://localhost:39091/docs |
 
+## Observability
+### Structured Logs
+Both the `pokemon_etl` DAG and the `Pokedex API` emit logs as JSON (timestamp,
+level, service, message) instead of plain text - ready to be ingested by any
+log aggregation tool.
+
+### Health Check
+`GET /health` tests actual database connectivity rather than returning a static
+response. It is wired to the Pokedex API's liveness and readness probes - if
+the database becomes unreachable, the pod is automatically removed from the
+Services's routing without manual intervention.
+
 ## CI/CD
 Three GitHub Actions workflows trigger on pull requests:
 | Workflow | Path | Steps |

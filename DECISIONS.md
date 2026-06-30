@@ -141,3 +141,24 @@ Two tests were implemented to demonstrate the possibilities:
 These tests establish the pattern for expanding governance enforcement over time —
 additional checks (schedule validation, tag requirements, timeout enforcement) can
 be added following the same structure.
+
+## Observability
+
+### Structured logging via native JSON formatter
+A small custom `logging.Formartter` subclass was used in both the DAG and the
+APP to emit JSON-formatted logs - ready to be ingested by any log aggregation tool.
+
+### Health Check tests real connectivity
+The Pokedex API's `/health` endpoint opens and closes an actual database
+connection rather than returning a static response. This makes the endpoint
+meaningful as a dependency check, no just a liveness signal for the process
+itself.
+
+### Liveness and Readiness probes
+The Pokedex API deployment wires its `/health` endpoint into both probes. This
+demonstrates Kubernetes-natives self-healing: if the database becomes
+unreachable, the readiness probe fails and the pod is automatically removed
+from the Service's routing - no manual intervention required - and restored
+automatically once the dependency recovers. Airflow and Postgres were not given
+custom probes - their official Helm charts already configure liveness/readiness
+checks.
