@@ -27,7 +27,7 @@ data:
 dags:
   gitSync:
     enabled: true
-    repo: git@github.com:RenataCP/dataops_involves
+    repo: git@github.com:RenataCP/desafio_involves
     branch: main
     subPath: dags
     wait: 60
