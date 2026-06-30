@@ -14,8 +14,22 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 
-logger = logging.getLogger(__name__)
+dag_name = "pokemon_etl"
 
+class JsonFormarter(logging.Formatter):
+    def format(self, record):
+        return json.dumps({
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "service": dag_name,
+            "message": record.getMessage(),
+        })
+
+handler = logging.StreamHandler()
+handler.setFormatter(JsonFormarter())
+logger = logging.getLogger(dag_name)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
 
 def _get_connection():
     return PostgresHook(postgres_conn_id="postgres_data")
@@ -175,7 +189,7 @@ def transform_and_load(**context: Any) -> dict[str, int]:
 
 
 with DAG(
-    dag_id="pokemon_etl",
+    dag_id=dag_name,
     schedule="@daily",
     start_date=datetime(2026, 6, 1),
     catchup=False,
